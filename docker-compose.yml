@@ -1,0 +1,35 @@
+version: '3'
+services:
+  mysql-db:
+    image: mysql:5.7
+    container_name: mysql-db
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: homelabdb
+      MYSQL_USER: homelab
+      MYSQL_PASSWORD: homelab123
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: always
+
+  flask-app:
+    build: .
+    container_name: flask-app
+    depends_on:
+      - mysql-db
+    restart: always
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx-proxy
+    ports:
+      - "9090:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - flask-app
+    restart: always
+
+volumes:
+  mysql-data:
